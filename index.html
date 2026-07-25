@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mercury Estimate</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 520px;
+      margin: 80px auto;
+      padding: 0 16px;
+      color: #1a1a1a;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; }
+    p.subtitle { color: #555; margin-top: 0; margin-bottom: 24px; font-size: 0.95rem; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    input[type="text"]:focus { outline: 2px solid #555; border-color: transparent; }
+    #result {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      min-height: 1.5em;
+    }
+    #result.error { color: #b00; }
+    #result.ok { color: #1a1a1a; }
+    .hint { margin-top: 32px; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Mercury Estimate</h1>
+  <p class="subtitle">Converts the upper end of an Earth estimate range into Mercury units.</p>
+
+  <label for="input">Estimate</label>
+  <input type="text" id="input" placeholder="e.g. 3-6 days, 1-2 weeks, 2 to 5 months" autocomplete="off" />
+
+  <div id="result"></div>
+
+  <div class="hint">
+    Accepted: days, weeks, months, years<br>
+    Separators: <code>-</code>, <code>–</code>, <code>—</code>, or <code>to</code>
+  </div>
+
+  <script>
+    const EARTH_MEAN_YEAR = 365.2425;
+    const MERCURY_ORBITAL_YEAR = 87.9691;
+    const MERCURY_SOLAR_DAY = 175.942;
+    const MERCURY_WEEK = 7 * MERCURY_SOLAR_DAY;
+
+    const PATTERN = /^\s*(\d+(?:[.,]\d+)?)\s*(?:-|–|—|to)\s*(\d+(?:[.,]\d+)?)\s*(days?|weeks?|months?|years?)\s*$/i;
+
+    function parseNumber(s) {
+      return parseFloat(s.replace(',', '.'));
+    }
+
+    function formatNumber(n) {
+      if (n === Math.trunc(n)) return String(Math.trunc(n));
+      return parseFloat(n.toFixed(4)).toString();
+    }
+
+    function pluralize(value, singular, plural) {
+      return value === 1 ? singular : plural;
+    }
+
+    function convert(input) {
+      const m = PATTERN.exec(input.trim());
+      if (!m) return { error: 'Expected a range like: 3-6 days, 1-2 weeks, 2 to 5 months, or 1–2 years.' };
+
+      const minimum = parseNumber(m[1]);
+      const maximum = parseNumber(m[2]);
+      const unitRaw = m[3].toLowerCase();
+
+      if (isNaN(minimum) || isNaN(maximum)) return { error: 'One or both numbers are invalid.' };
+      if (minimum < 0 || maximum < 0) return { error: 'Values cannot be negative.' };
+      if (minimum > maximum) return { error: 'The start of the range cannot be greater than the end.' };
+
+      const unit = unitRaw.startsWith('day') ? 'day'
+                 : unitRaw.startsWith('week') ? 'week'
+                 : unitRaw.startsWith('month') ? 'month'
+                 : 'year';
+
+      let mercuryMax;
+      switch (unit) {
+        case 'day':   mercuryMax = maximum / MERCURY_SOLAR_DAY; break;
+        case 'week':  mercuryMax = (maximum * 7) / MERCURY_WEEK; break;
+        case 'month': mercuryMax = (maximum * (EARTH_MEAN_YEAR / 12)) / (MERCURY_ORBITAL_YEAR / 12); break;
+        case 'year':  mercuryMax = (maximum * EARTH_MEAN_YEAR) / MERCURY_ORBITAL_YEAR; break;
+      }
+
+      const earthLabel = {
+        day:   pluralize(minimum, 'Earth day', 'Earth days'),
+        week:  pluralize(minimum, 'Earth week', 'Earth weeks'),
+        month: pluralize(minimum, 'Earth month', 'Earth months'),
+        year:  pluralize(minimum, 'Earth year', 'Earth years'),
+      }[unit];
+
+      const mercuryLabel = {
+        day:   pluralize(mercuryMax, 'Mercury solar day', 'Mercury solar days'),
+        week:  pluralize(mercuryMax, 'Mercury week', 'Mercury weeks'),
+        month: pluralize(mercuryMax, 'Mercury orbital month', 'Mercury orbital months'),
+        year:  pluralize(mercuryMax, 'Mercury orbital year', 'Mercury orbital years'),
+      }[unit];
+
+      return {
+        display: `${formatNumber(minimum)} ${earthLabel} to ${formatNumber(mercuryMax)} ${mercuryLabel}`
+      };
+    }
+
+    const inputEl = document.getElementById('input');
+    const resultEl = document.getElementById('result');
+
+    inputEl.addEventListener('input', () => {
+      const val = inputEl.value.trim();
+      if (!val) {
+        resultEl.textContent = '';
+        resultEl.className = '';
+        return;
+      }
+      const r = convert(val);
+      if (r.error) {
+        resultEl.textContent = r.error;
+        resultEl.className = 'error';
+      } else {
+        resultEl.textContent = r.display;
+        resultEl.className = 'ok';
+      }
+    });
+  </script>
+</body>
+</html>
