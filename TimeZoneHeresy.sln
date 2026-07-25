@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeZoneHeresy", "TimeZoneHeresy\TimeZoneHeresy.csproj", "{FB425FCF-75BF-42D6-970D-F0783EB5A581}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB425FCF-75BF-42D6-970D-F0783EB5A581}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB425FCF-75BF-42D6-970D-F0783EB5A581}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB425FCF-75BF-42D6-970D-F0783EB5A581}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB425FCF-75BF-42D6-970D-F0783EB5A581}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
